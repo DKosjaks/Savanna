@@ -6,14 +6,13 @@
     using System.Timers;
 
     /// <summary>
-    /// Game and animal logic
+    /// Game field and animal logic
     /// </summary>
     public class GameEngine
     {
         private const int _width = 40, _height = 20;
         private char[,] _grid;
         private UIManager _uIManager;
-        private Timer _timer;
         private readonly List<Animal> _animals;
 
         /// <summary>
@@ -32,8 +31,7 @@
         public void StartGame()
         {
             InitGrid();
-
-            _timer = new Timer(1000);
+            Timer _timer = new Timer(1000);
             _timer.Elapsed += (sender, e) => OnTimedGameEvent();
             _timer.AutoReset = true;
             _timer.Enabled = true;
@@ -44,10 +42,10 @@
                 switch (Console.ReadKey().Key)
                 {
                     case ConsoleKey.A:
-                        AddAnimal("Antelope", 'A', TypeEnum.Prey);
+                        AddAntelope('A');
                         break;
                     case ConsoleKey.L:
-                        AddAnimal("Lion", 'L', TypeEnum.Predator);
+                        AddLion('L');
                         break;
                     case ConsoleKey.Spacebar:
                         _timer.Stop();
@@ -65,24 +63,39 @@
         {
             _uIManager.Draw(_grid);
             MoveAnimals();
+            Die();
         }
 
         /// <summary>
         /// Create new animal object and add it to list and grid
         /// </summary>
-        /// <param name="name">Name of animal</param>
         /// <param name="icon">Animal icon displayed on screen</param>
-        /// <param name="type">Animal type</param>
-        private void AddAnimal(string name, char icon, TypeEnum type)
+        private void AddLion(char icon)
         {
-            var animal = new Animal
+            var animal = new Lion
             {
-                Name = name,
                 Icon = icon,
-                Health = 100,
-                X = RandomNumberGenerator.GetInt32(1, _width),
-                Y = RandomNumberGenerator.GetInt32(1, _height),
-                Type = type
+                Health = 10,
+                X = RandomNumberGenerator.GetInt32(1, _width - 1),
+                Y = RandomNumberGenerator.GetInt32(1, _height - 1)
+            };
+
+            _animals.Add(animal);
+            _grid[animal.Y, animal.X] = animal.Icon;
+        }
+
+        /// <summary>
+        /// Create new animal object and add it to list and grid
+        /// </summary>
+        /// <param name="icon">Animal icon displayed on screen</param>
+        private void AddAntelope(char icon)
+        {
+            var animal = new Antelope
+            {
+                Icon = icon,
+                Health = 10,
+                X = RandomNumberGenerator.GetInt32(1, _width - 1),
+                Y = RandomNumberGenerator.GetInt32(1, _height - 1)
             };
 
             _animals.Add(animal);
@@ -99,18 +112,18 @@
                 foreach (var animal in _animals)
                 {
                     _grid[animal.Y, animal.X] = ' ';
-                    animal.X = RandomNumberGenerator.GetInt32(
-                        animal.X - 1 == 0 ? 1 : animal.X - 1,
-                        animal.X + 2 >= _width ? _width - 1 : animal.X + 2
-                        );
-                    animal.Y = RandomNumberGenerator.GetInt32(
-                        animal.Y - 1 == 0 ? 1 : animal.Y - 1,
-                        animal.Y + 2 >= _height ? _height - 1 : animal.Y + 2
-                        );
-                    _grid[animal.Y, animal.X] = animal.Icon;
-                    animal.Health -= 0.5;
+                    animal.MoveRandomly(_width, _height);
+                    _grid[animal.Y, animal.X] = animal.Health > 0 ? animal.Icon : ' ';
                 }
             }
+        }
+
+        /// <summary>
+        /// Remove from list when health drops to 0
+        /// </summary>
+        private void Die()
+        {
+            _animals.RemoveAll(x => x.Health <= 0);
         }
 
         /// <summary>

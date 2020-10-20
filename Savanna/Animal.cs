@@ -1,15 +1,12 @@
 ﻿namespace Savanna
 {
+    using System.Security.Cryptography;
+
     /// <summary>
     /// Represents animal object
     /// </summary>
-    public class Animal
+    public abstract class Animal
     {
-        /// <summary>
-        /// Animal name
-        /// </summary>
-        public string Name { get; set; }
-
         /// <summary>
         /// Animal icon displayed on screen
         /// </summary>
@@ -31,8 +28,22 @@
         public int Y { get; set; }
 
         /// <summary>
-        /// Animal type
+        /// Moves animal randomly on grid
         /// </summary>
-        public TypeEnum Type { get; set; }
+        /// <param name="width">Max game field width</param>
+        /// <param name="height">Max game field height</param>
+        public void MoveRandomly(int width, int height)
+        {
+            X = RandomNumberGenerator.GetInt32(
+                X - 1 == 0 ? 1 : X - 1,
+                X + 2 >= width ? width - 1 : X + 2
+                );
+            Y = RandomNumberGenerator.GetInt32(
+                Y - 1 == 0 ? 1 : Y - 1,
+                Y + 2 >= height ? height - 1 : Y + 2
+                );
+
+            Health -= 0.5;
+        }
     }
 }
